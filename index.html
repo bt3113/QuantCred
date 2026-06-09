@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QuantCred — Backtest Credibility Auditor</title>
+  <meta name="description" content="A browser-only audit tool for checking whether a backtest survives sample-length, non-normality, multiple-testing, and overfitting diagnostics." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div class="surface-glow surface-glow--lime"></div>
+  <div class="surface-glow surface-glow--violet"></div>
+
+  <main class="app-shell">
+    <aside class="side-rail" aria-label="Product navigation">
+      <a class="brand" href="#">
+        <span class="brand-mark">QC</span>
+        <span>
+          <strong>QuantCred</strong>
+          <small>Audit lab</small>
+        </span>
+      </a>
+
+      <nav class="rail-nav">
+        <a href="#audit" class="rail-link active">Audit</a>
+        <a href="#measurements" class="rail-link">Measurements</a>
+        <a href="#diagnostics" class="rail-link">Diagnostics</a>
+        <a href="#methodology" class="rail-link">Method</a>
+      </nav>
+
+      <div class="rail-note">
+        <span class="note-dot"></span>
+        <p>CSV files are processed in your browser. No backend upload is used by this app.</p>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <label class="search" aria-label="Search interface sections">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.8 18.1a7.3 7.3 0 1 1 0-14.6 7.3 7.3 0 0 1 0 14.6Zm0-1.6a5.7 5.7 0 1 0 0-11.4 5.7 5.7 0 0 0 0 11.4Zm5.2.2 4.1 4.1-1.2 1.2-4.1-4.1 1.2-1.2Z"/></svg>
+          <input id="sectionSearch" type="search" placeholder="Search metrics, warnings, methods..." />
+        </label>
+
+        <div class="top-actions">
+          <button id="loadDemoBtn" class="pill-button pill-button--ghost" type="button">Try demo matrix</button>
+          <label class="pill-button pill-button--primary">
+            <input id="fileInput" type="file" accept=".csv,text/csv" />
+            Upload CSV
+          </label>
+        </div>
+      </header>
+
+      <section class="hero" id="audit">
+        <div class="hero-copy">
+          <p class="eyebrow">Backtest credibility auditor</p>
+          <h1>Check whether a backtest survives statistical pressure.</h1>
+          <p class="hero-text">
+            QuantCred audits a return series or strategy matrix for sample-length risk,
+            non-normal returns, multiple-testing inflation, and selection overfitting.
+          </p>
+        </div>
+
+        <div class="verdict-card" id="verdictCard">
+          <div class="verdict-topline">
+            <span class="status-dot"></span>
+            <span id="verdictStatus">Awaiting data</span>
+          </div>
+          <strong id="verdictTitle">Upload a return CSV or run the demo</strong>
+          <p id="verdictReason">The audit report will appear here after the data is validated.</p>
+        </div>
+      </section>
+
+      <section class="measurements" id="measurements">
+        <div class="section-heading">
+          <span>Measurements</span>
+          <button id="exportBtn" class="text-button" type="button" disabled>Export report</button>
+        </div>
+
+        <div class="core-strip">
+          <div class="core-header">
+            <small>Core</small>
+            <strong>Credibility pressure map</strong>
+          </div>
+          <div class="pressure-bars" aria-label="Credibility pressure bars">
+            <div class="pressure-bar pressure-bar--lime" id="barData" style="--w: 12%"><span>Data</span></div>
+            <div class="pressure-bar pressure-bar--violet" id="barPsr" style="--w: 12%"><span>PSR</span></div>
+            <div class="pressure-bar pressure-bar--sage" id="barDsr" style="--w: 12%"><span>DSR</span></div>
+            <div class="pressure-bar pressure-bar--sand" id="barPbo" style="--w: 12%"><span>PBO</span></div>
+          </div>
+        </div>
+
+        <div class="metric-grid" id="metricGrid">
+          <article class="metric-card metric-card--empty">
+            <div class="metric-card__header">
+              <span>Data integrity</span>
+              <em>Not started</em>
+            </div>
+            <p>Rows, date order, missing values, numeric return checks.</p>
+          </article>
+          <article class="metric-card metric-card--empty">
+            <div class="metric-card__header">
+              <span>Sharpe evidence</span>
+              <em>Not started</em>
+            </div>
+            <p>Native Sharpe, skewness, kurtosis, Probabilistic Sharpe Ratio.</p>
+          </article>
+          <article class="metric-card metric-card--empty">
+            <div class="metric-card__header">
+              <span>Deflation</span>
+              <em>Not started</em>
+            </div>
+            <p>Adjustment for hidden trials and multiple strategy variants.</p>
+          </article>
+          <article class="metric-card metric-card--empty">
+            <div class="metric-card__header">
+              <span>Overfit check</span>
+              <em>Not started</em>
+            </div>
+            <p>CSCV / PBO diagnostics when a strategy family is supplied.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="split-panel" id="diagnostics">
+        <article class="panel">
+          <div class="panel-title">
+            <span>Input requirements</span>
+            <small>Single strategy or matrix</small>
+          </div>
+          <div class="upload-box" id="dropZone">
+            <div class="upload-icon">↥</div>
+            <strong>Drop CSV here or use Upload CSV</strong>
+            <p>
+              Use <code>date,return</code> for a single return stream, or <code>date,strategy_a,strategy_b,...</code>
+              for a strategy-family audit.
+            </p>
+          </div>
+        </article>
+
+        <article class="panel panel--log">
+          <div class="panel-title">
+            <span>Validation log</span>
+            <small id="schemaLabel">No file loaded</small>
+          </div>
+          <ul id="validationList" class="validation-list">
+            <li>Waiting for a CSV file.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="panel report-panel">
+        <div class="panel-title">
+          <span>Audit report</span>
+          <small id="reportTimestamp">No report generated</small>
+        </div>
+        <div id="reportBody" class="report-body">
+          <p class="muted">Run the demo or upload a CSV to generate a reproducible report.</p>
+        </div>
+      </section>
+
+      <section class="methodology" id="methodology">
+        <div class="method-card">
+          <span>PSR</span>
+          <p>Probability that the observed Sharpe exceeds a benchmark after accounting for sample length, skewness, and kurtosis.</p>
+        </div>
+        <div class="method-card">
+          <span>DSR</span>
+          <p>Deflates Sharpe evidence by raising the benchmark hurdle when many trials or strategy variants exist.</p>
+        </div>
+        <div class="method-card">
+          <span>PBO</span>
+          <p>Uses combinatorially symmetric cross-validation to estimate selection-overfitting risk in a strategy family.</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
