@@ -1,0 +1,47 @@
+name: Audit case
+description: Submit a reproducible QuantCred audit case
+title: "[Audit case]: "
+labels: ["audit-case"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What did QuantCred report?
+    validations:
+      required: true
+  - type: dropdown
+    id: input_type
+    attributes:
+      label: Input type
+      options:
+        - Single return stream
+        - Strategy matrix
+        - Trades
+        - Positions
+        - Factor returns
+        - Manifest
+        - Incubation append
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: report_hash
+    attributes:
+      label: Report hash / app version
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Do not attach proprietary strategy files unless you intend them to become public in the issue.
