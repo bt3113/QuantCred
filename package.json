@@ -22,6 +22,7 @@
     "globals": "latest",
     "jsdom": "latest",
     "typescript": "latest",
+    "typescript-eslint": "latest",
     "vite": "latest",
     "vitest": "latest"
   }
