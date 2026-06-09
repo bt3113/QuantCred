@@ -1,0 +1,27 @@
+{
+  "name": "quantcred",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .js,.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:fixtures": "vitest run tests/fixtures/*.test.ts",
+    "package:offline": "npm run build && node scripts/package-offline.mjs",
+    "package:examples": "node scripts/package-examples.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "typescript": "latest",
+    "vitest": "latest",
+    "eslint": "latest",
+    "@eslint/js": "latest",
+    "globals": "latest"
+  },
+  "devDependencies": {}
+}
