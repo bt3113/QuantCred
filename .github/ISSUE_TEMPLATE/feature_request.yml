@@ -1,0 +1,40 @@
+name: Feature request
+description: Request a QuantCred feature or workflow improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What quant research problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - File formats
+        - Statistical audit
+        - PBO / strategy matrix
+        - Trial ledger
+        - Costs and capacity
+        - Factor attribution
+        - Robustness atlas
+        - Live incubation
+        - Report export
+        - UI / workflow
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Include papers, docs, or reproducible examples if available.
