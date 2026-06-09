@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bt3113.github.io/QuantCred/schemas/quantcred-manifest.schema.json",
+  "title": "QuantCred Audit Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["strategy_id", "researcher", "asset_class", "frequency", "backtest_start", "backtest_end"],
+  "properties": {
+    "strategy_id": { "type": "string", "minLength": 1 },
+    "researcher": { "type": "string", "minLength": 1 },
+    "asset_class": { "type": "string", "minLength": 1 },
+    "frequency": { "enum": ["daily", "weekly", "monthly", "intraday", "other"] },
+    "backtest_start": { "type": "string", "format": "date" },
+    "backtest_end": { "type": "string", "format": "date" },
+    "selected_strategy": { "type": "string" },
+    "declared_trials": { "type": "integer", "minimum": 1 },
+    "parameter_grid": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": ["string", "number", "boolean"] },
+        "minItems": 1
+      }
+    },
+    "data_assumptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "point_in_time": { "type": "boolean" },
+        "survivorship_free": { "type": "boolean" },
+        "corporate_actions_adjusted": { "type": "boolean" },
+        "transaction_costs_included": { "type": "boolean" }
+      }
+    },
+    "cost_assumptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commissionBps": { "type": "number", "minimum": 0 },
+        "spreadCaptureFraction": { "type": "number", "minimum": 0, "maximum": 1 },
+        "slippageBps": { "type": "number", "minimum": 0 },
+        "borrowCostAnnualBps": { "type": "number", "minimum": 0 },
+        "marketImpactCoefficient": { "type": "number", "minimum": 0 },
+        "maxAdvParticipation": { "type": "number", "minimum": 0 }
+      }
+    },
+    "leakage_checklist": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "point_in_time_data": { "enum": ["yes", "no", "unknown"] },
+        "survivorship_free_universe": { "enum": ["yes", "no", "unknown"] },
+        "corporate_actions_adjusted": { "enum": ["yes", "no", "unknown"] },
+        "delisted_assets_included": { "enum": ["yes", "no", "unknown"] },
+        "feature_lag_days": { "type": "number", "minimum": 0 },
+        "signal_timestamp_before_trade_timestamp": { "enum": ["yes", "no", "unknown"] },
+        "transaction_costs_included": { "enum": ["yes", "no", "unknown"] }
+      }
+    }
+  }
+}
