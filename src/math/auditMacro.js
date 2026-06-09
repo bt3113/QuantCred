@@ -26,8 +26,8 @@ export function auditDataset(parsed, meta = {}) {
 }
 
 export function generateMarkdownReport(report) {
-  if (report.panelAudit) return panelMarkdown(report);
-  return core.generateMarkdownReport(report);
+  const body = report.panelAudit ? panelMarkdown(report) : core.generateMarkdownReport(report);
+  return body + schemaReviewMarkdown(report);
 }
 
 function panelReport(parsed, meta, schema) {
@@ -46,6 +46,16 @@ function panelMarkdown(report) {
   return `# QuantCred Audit Report\n\nGenerated: ${report.generatedAt}\n\n## Verdict\n\n**Audit blocked: ${report.verdict.title}**\n\n${report.verdict.reason}\n\n## Dataset\n\n- Source: ${report.summary.label}\n- Schema: ${audit.schema}\n- Input rows: ${report.summary.inputRows}\n- Frequency: ${audit.frequency}\n- Date range: ${audit.dateStart || "N/A"} to ${audit.dateEnd || "N/A"}\n\nNo Sharpe, PSR, DSR, PBO, or daily annualization was run because this file is not a strategy-return dataset.\n`;
 }
 
+function schemaReviewMarkdown(report) {
+  const schema = report.schemaGate || {};
+  const roles = schema.columnRoles || report.schemaRoles || {};
+  const entries = Object.entries(roles);
+  if (!entries.length) return "";
+  const rows = entries.map(([name, role]) => `| ${name} | ${role} | ${isSelectable(role) ? "yes" : "no"} |`).join("\n");
+  return `\n## Schema Review\n\n- Detected schema: ${schema.mode || report.summary?.schemaMode || "unknown"}\n- Candidate return columns: ${(schema.returnColumns || []).join(", ") || "none"}\n\n| Column | Role | Selectable as strategy |\n|---|---|---:|\n${rows}\n`;
+}
+
+function isSelectable(role) { return ["strategy_return", "gross_strategy_return", "net_strategy_return", "candidate_return"].includes(role); }
 function emptySelected() { return { name: "N/A", dailySharpe: null, annualizedSharpe: null, sharpe: null, psr: null, dsr: null, maxDrawdown: null, skewness: null, kurtosis: null }; }
 function parseDate(value) { const date = new Date(String(value ?? "")); return Number.isNaN(date.getTime()) ? null : date; }
 function iso(date) { return date.toISOString().slice(0, 10); }
