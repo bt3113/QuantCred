@@ -31,14 +31,21 @@ const els = {
 let currentReport = null;
 
 function parseCsvText(text, label = "uploaded CSV") {
-  Papa.parse(text, {
+  const prepared = prepareCsvText(text, label);
+
+  Papa.parse(prepared.text, {
     header: true,
     dynamicTyping: true,
     skipEmptyLines: true,
     complete: (result) => {
       const schema = detectSchema(result.data);
       const parsed = parseRecords(result.data, schema);
-      const report = auditDataset(parsed, { label, schema, parseErrors: result.errors || [] });
+      const report = auditDataset(parsed, {
+        label: prepared.label,
+        schema,
+        parseErrors: result.errors || [],
+        preprocessingNotes: prepared.notes
+      });
       currentReport = report;
       renderReport(report);
     },
@@ -48,28 +55,25 @@ function parseCsvText(text, label = "uploaded CSV") {
   });
 }
 
-function parseFile(file) {
+async function parseFile(file) {
   if (!file) return;
-  Papa.parse(file, {
-    header: true,
-    dynamicTyping: true,
-    skipEmptyLines: true,
-    worker: true,
-    complete: (result) => {
-      const schema = detectSchema(result.data);
-      const parsed = parseRecords(result.data, schema);
-      const report = auditDataset(parsed, {
-        label: file.name,
-        schema,
-        parseErrors: result.errors || []
-      });
-      currentReport = report;
-      renderReport(report);
-    },
-    error: (error) => {
-      renderError(`CSV parsing failed: ${error.message}`);
+
+  try {
+    const fileName = file.name.toLowerCase();
+    if (fileName.endsWith(".zip")) {
+      const zip = await JSZip.loadAsync(file);
+      const csvEntry = Object.values(zip.files).find((entry) => !entry.dir && entry.name.toLowerCase().endsWith(".csv"));
+      if (!csvEntry) throw new Error("ZIP did not contain a CSV file.");
+      const text = await csvEntry.async("text");
+      parseCsvText(text, `${file.name} → ${csvEntry.name}`);
+      return;
     }
-  });
+
+    const text = await file.text();
+    parseCsvText(text, file.name);
+  } catch (error) {
+    renderError(error.message);
+  }
 }
 
 async function loadDemo() {
@@ -81,6 +85,59 @@ async function loadDemo() {
   } catch (error) {
     renderError(error.message);
   }
+}
+
+function prepareCsvText(text, label) {
+  const normalized = text.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const french = prepareFrenchFactorCsv(normalized);
+  if (french) {
+    return {
+      text: french,
+      label,
+      notes: ["Detected Kenneth French factor format. Header text was removed and percent returns were converted to decimal returns."]
+    };
+  }
+
+  const cleaned = stripLeadingMetadata(normalized);
+  return {
+    text: cleaned,
+    label,
+    notes: cleaned === normalized ? [] : ["Leading metadata rows were removed before parsing."]
+  };
+}
+
+function prepareFrenchFactorCsv(text) {
+  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  const headerIndex = lines.findIndex((line) => /^,?Mkt-RF,SMB,HML,RF$/i.test(line.replace(/\s+/g, "")));
+  if (headerIndex === -1) return null;
+
+  const output = ["date,mkt_rf,smb,hml,rf"];
+  for (let i = headerIndex + 1; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (!/^\d{8},/.test(line)) break;
+    const parts = line.split(",").map((part) => part.trim());
+    if (parts.length < 5) continue;
+    const dateRaw = parts[0];
+    const y = dateRaw.slice(0, 4);
+    const m = dateRaw.slice(4, 6);
+    const d = dateRaw.slice(6, 8);
+    const values = parts.slice(1, 5).map((value) => {
+      const number = Number(value);
+      return Number.isFinite(number) ? (number / 100).toString() : "";
+    });
+    output.push(`${y}-${m}-${d},${values.join(",")}`);
+  }
+
+  return output.length > 1 ? output.join("\n") : null;
+}
+
+function stripLeadingMetadata(text) {
+  const lines = text.split("\n");
+  const headerIndex = lines.findIndex((line) => {
+    const lower = line.toLowerCase();
+    return lower.includes("date,") || lower.startsWith("date,") || lower.includes(",return") || lower.includes("strategy");
+  });
+  return headerIndex > 0 ? lines.slice(headerIndex).join("\n") : text;
 }
 
 function renderError(message) {
@@ -159,6 +216,7 @@ function renderValidation(report) {
 
   report.validation.errors.forEach((message) => items.push({ kind: "error", message }));
   report.validation.warnings.forEach((message) => items.push({ kind: "warning", message }));
+  (report.validation.notes || []).forEach((message) => items.push({ kind: "ok", message }));
 
   if (!items.length) {
     items.push({ kind: "ok", message: "CSV passed structural validation." });
