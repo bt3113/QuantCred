@@ -33,7 +33,7 @@
 
       <div class="rail-note">
         <span class="note-dot"></span>
-        <p>CSV files are processed in your browser. No backend upload is used by this app.</p>
+        <p>CSV and ZIP files are processed in your browser. No backend upload is used by this app.</p>
       </div>
     </aside>
 
@@ -47,8 +47,8 @@
         <div class="top-actions">
           <button id="loadDemoBtn" class="pill-button pill-button--ghost" type="button">Try demo matrix</button>
           <label class="pill-button pill-button--primary">
-            <input id="fileInput" type="file" accept=".csv,text/csv" />
-            Upload CSV
+            <input id="fileInput" type="file" accept=".csv,.zip,text/csv,application/zip,application/x-zip-compressed" />
+            Upload CSV/ZIP
           </label>
         </div>
       </header>
@@ -68,7 +68,7 @@
             <span class="status-dot"></span>
             <span id="verdictStatus">Awaiting data</span>
           </div>
-          <strong id="verdictTitle">Upload a return CSV or run the demo</strong>
+          <strong id="verdictTitle">Upload a return CSV/ZIP or run the demo</strong>
           <p id="verdictReason">The audit report will appear here after the data is validated.</p>
         </div>
       </section>
@@ -128,14 +128,14 @@
         <article class="panel">
           <div class="panel-title">
             <span>Input requirements</span>
-            <small>Single strategy or matrix</small>
+            <small>Single strategy, matrix, or French factors</small>
           </div>
           <div class="upload-box" id="dropZone">
             <div class="upload-icon">↥</div>
-            <strong>Drop CSV here or use Upload CSV</strong>
+            <strong>Drop CSV or ZIP here</strong>
             <p>
-              Use <code>date,return</code> for a single return stream, or <code>date,strategy_a,strategy_b,...</code>
-              for a strategy-family audit.
+              Use <code>date,return</code>, <code>date,strategy_a,strategy_b,...</code>, or the official
+              unmodified Kenneth French factor ZIP/CSV file. French percent returns are converted to decimals automatically.
             </p>
           </div>
         </article>
@@ -146,7 +146,7 @@
             <small id="schemaLabel">No file loaded</small>
           </div>
           <ul id="validationList" class="validation-list">
-            <li>Waiting for a CSV file.</li>
+            <li>Waiting for a CSV or ZIP file.</li>
           </ul>
         </article>
       </section>
@@ -157,7 +157,7 @@
           <small id="reportTimestamp">No report generated</small>
         </div>
         <div id="reportBody" class="report-body">
-          <p class="muted">Run the demo or upload a CSV to generate a reproducible report.</p>
+          <p class="muted">Run the demo or upload a CSV/ZIP to generate a reproducible report.</p>
         </div>
       </section>
 
@@ -179,6 +179,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script type="module" src="./src/app.js"></script>
 </body>
 </html>
