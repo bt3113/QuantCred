@@ -14,14 +14,14 @@
     "package:offline": "npm run build && node scripts/package-offline.mjs",
     "package:examples": "node scripts/package-examples.mjs"
   },
-  "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
-    "vitest": "latest",
-    "eslint": "latest",
+  "dependencies": {},
+  "devDependencies": {
     "@eslint/js": "latest",
-    "globals": "latest"
-  },
-  "devDependencies": {}
+    "@types/node": "latest",
+    "eslint": "latest",
+    "globals": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "vitest": "latest"
+  }
 }
