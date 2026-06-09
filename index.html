@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/styles.css?v=20260909-1" />
+  <link rel="stylesheet" href="./css/styles.css?v=20260909-4" />
 </head>
 <body>
   <div class="surface-glow surface-glow--lime"></div>
@@ -45,7 +45,7 @@
         </label>
 
         <div class="top-actions">
-          <button id="loadDemoBtn" class="pill-button pill-button--ghost" type="button">Try demo matrix</button>
+          <button id="loadDemoBtn" class="pill-button pill-button--ghost" type="button">Open official dataset page</button>
           <label class="pill-button pill-button--primary">
             <input id="fileInput" type="file" accept=".csv,.zip,text/csv,application/zip,application/x-zip-compressed" />
             Upload CSV/ZIP
@@ -68,7 +68,7 @@
             <span class="status-dot"></span>
             <span id="verdictStatus">Awaiting data</span>
           </div>
-          <strong id="verdictTitle">Upload a return CSV/ZIP or run the demo</strong>
+          <strong id="verdictTitle">Upload a return CSV/ZIP</strong>
           <p id="verdictReason">The audit report will appear here after the data is validated.</p>
         </div>
       </section>
@@ -94,31 +94,19 @@
 
         <div class="metric-grid" id="metricGrid">
           <article class="metric-card metric-card--empty">
-            <div class="metric-card__header">
-              <span>Data integrity</span>
-              <em>Not started</em>
-            </div>
+            <div class="metric-card__header"><span>Data integrity</span><em>Not started</em></div>
             <p>Rows, date order, missing values, numeric return checks.</p>
           </article>
           <article class="metric-card metric-card--empty">
-            <div class="metric-card__header">
-              <span>Sharpe evidence</span>
-              <em>Not started</em>
-            </div>
-            <p>Native Sharpe, skewness, kurtosis, Probabilistic Sharpe Ratio.</p>
+            <div class="metric-card__header"><span>Sharpe evidence</span><em>Not started</em></div>
+            <p>Daily/annualized Sharpe, skewness, kurtosis, Probabilistic Sharpe Ratio.</p>
           </article>
           <article class="metric-card metric-card--empty">
-            <div class="metric-card__header">
-              <span>Deflation</span>
-              <em>Not started</em>
-            </div>
-            <p>Adjustment for hidden trials and multiple strategy variants.</p>
+            <div class="metric-card__header"><span>Governance</span><em>Not started</em></div>
+            <p>Trial ledger, time-series validation gaps, factor attribution, cost/capacity.</p>
           </article>
           <article class="metric-card metric-card--empty">
-            <div class="metric-card__header">
-              <span>Overfit check</span>
-              <em>Not started</em>
-            </div>
+            <div class="metric-card__header"><span>Overfit check</span><em>Not started</em></div>
             <p>CSCV / PBO diagnostics when a strategy family is supplied.</p>
           </article>
         </div>
@@ -126,60 +114,38 @@
 
       <section class="split-panel" id="diagnostics">
         <article class="panel">
-          <div class="panel-title">
-            <span>Input requirements</span>
-            <small>Single strategy, matrix, or French factors</small>
-          </div>
+          <div class="panel-title"><span>Input requirements</span><small>Single strategy, matrix, cost, factor, or French factors</small></div>
           <div class="upload-box" id="dropZone">
             <div class="upload-icon">↥</div>
             <strong>Drop CSV or ZIP here</strong>
             <p>
-              Use <code>date,return</code>, <code>date,strategy_a,strategy_b,...</code>, or the official
-              unmodified Kenneth French factor ZIP/CSV file. French percent returns are converted to decimals automatically.
+              Use <code>date,return</code>, <code>date,strategy_a,strategy_b,...</code>, <code>date,gross_return,turnover,...,expected_net_return</code>, or a factor file with <code>strategy_return,mkt_rf,smb,hml</code>.
             </p>
           </div>
         </article>
 
         <article class="panel panel--log">
-          <div class="panel-title">
-            <span>Validation log</span>
-            <small id="schemaLabel">No file loaded</small>
-          </div>
-          <ul id="validationList" class="validation-list">
-            <li>Waiting for a CSV or ZIP file.</li>
-          </ul>
+          <div class="panel-title"><span>Validation log</span><small id="schemaLabel">No file loaded</small></div>
+          <ul id="validationList" class="validation-list"><li>Waiting for a CSV or ZIP file.</li></ul>
         </article>
       </section>
 
       <section class="panel report-panel">
-        <div class="panel-title">
-          <span>Audit report</span>
-          <small id="reportTimestamp">No report generated</small>
-        </div>
-        <div id="reportBody" class="report-body">
-          <p class="muted">Run the demo or upload a CSV/ZIP to generate a reproducible report.</p>
-        </div>
+        <div class="panel-title"><span>Audit report</span><small id="reportTimestamp">No report generated</small></div>
+        <div id="reportBody" class="report-body"><p class="muted">Upload a CSV/ZIP to generate a reproducible report.</p></div>
       </section>
 
       <section class="methodology" id="methodology">
-        <div class="method-card">
-          <span>PSR</span>
-          <p>Probability that the observed Sharpe exceeds a benchmark after accounting for sample length, skewness, and kurtosis.</p>
-        </div>
-        <div class="method-card">
-          <span>DSR</span>
-          <p>Deflates Sharpe evidence by raising the benchmark hurdle when many trials or strategy variants exist.</p>
-        </div>
-        <div class="method-card">
-          <span>PBO</span>
-          <p>Uses combinatorially symmetric cross-validation to estimate selection-overfitting risk in a strategy family.</p>
-        </div>
+        <div class="method-card"><span>PSR</span><p>Probability that the observed Sharpe exceeds a benchmark after accounting for sample length, skewness, and kurtosis.</p></div>
+        <div class="method-card"><span>DSR</span><p>Deflates Sharpe evidence by raising the benchmark hurdle when many trials or strategy variants exist.</p></div>
+        <div class="method-card"><span>PBO</span><p>Uses combinatorially symmetric cross-validation to estimate selection-overfitting risk in a strategy family.</p></div>
       </section>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script type="module" src="./src/app.js?v=20260909-1"></script>
+  <script type="module" src="./src/governance-ui.js?v=20260909-4"></script>
+  <script type="module" src="./src/app.js?v=20260909-4"></script>
 </body>
 </html>
