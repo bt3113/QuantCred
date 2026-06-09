@@ -20,11 +20,18 @@ export function parseRecords(rows, schema) {
 }
 
 export function auditDataset(parsed, meta = {}) {
-  const report = base.auditDataset(parsed, meta);
-  const schema = parsed.schema || meta.schema || {};
+  const governance = readGovernanceSettings();
+  const mergedMeta = {
+    ...meta,
+    validationConfig: meta.validationConfig || governance.validationConfig,
+    trialLedger: meta.trialLedger || governance.trialLedger,
+    manifest: meta.manifest || governance.manifest
+  };
+  const report = base.auditDataset(parsed, mergedMeta);
+  const schema = parsed.schema || mergedMeta.schema || {};
   if (report.verdict?.status !== "Audit blocked") {
-    report.timeSeriesCv = computeTimeSeriesCv(parsed.observations || [], meta.validationConfig || {});
-    report.searchHistory = summarizeSearchHistory(report, meta.trialLedger || [], meta.manifest || null);
+    report.timeSeriesCv = computeTimeSeriesCv(parsed.observations || [], mergedMeta.validationConfig || {});
+    report.searchHistory = summarizeSearchHistory(report, mergedMeta.trialLedger || [], mergedMeta.manifest || null);
     if (schema.factorColumns?.length) {
       report.factorAttribution = computeFactorAttribution(parsed.originalRows || [], report.selected?.name, schema.factorColumns);
       if (report.factorAttribution?.status === "computed" && report.factorAttribution.rawSharpe > 1.5 && report.factorAttribution.residualProxySharpe < 0.5) {
@@ -40,6 +47,17 @@ export function auditDataset(parsed, meta = {}) {
 
 export function generateMarkdownReport(report) {
   return base.generateMarkdownReport(report) + factorMarkdown(report) + cvMarkdown(report) + searchMarkdown(report);
+}
+
+function readGovernanceSettings() {
+  const defaults = { validationConfig: {}, trialLedger: [], manifest: null };
+  try {
+    if (typeof globalThis !== "undefined" && globalThis.quantcredGovernance) return { ...defaults, ...globalThis.quantcredGovernance };
+    if (typeof localStorage !== "undefined") return { ...defaults, ...JSON.parse(localStorage.getItem("quantcredGovernance") || "{}") };
+  } catch (_error) {
+    return defaults;
+  }
+  return defaults;
 }
 
 function summarizeSearchHistory(report, ledger, manifest) {
