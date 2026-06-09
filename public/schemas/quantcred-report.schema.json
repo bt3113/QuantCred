@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bt3113.github.io/QuantCred/schemas/quantcred-report.schema.json",
+  "title": "QuantCred Report",
+  "type": "object",
+  "required": ["version", "provenance", "inputSummary", "statisticalAudit", "dataIntegrity", "score", "warnings"],
+  "properties": {
+    "version": { "type": "string" },
+    "provenance": {
+      "type": "object",
+      "required": ["appVersion", "generatedAt", "inputHashes", "configHash", "reportHash"],
+      "properties": {
+        "appVersion": { "type": "string" },
+        "commitSha": { "type": "string" },
+        "buildTime": { "type": "string" },
+        "generatedAt": { "type": "string" },
+        "inputHashes": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        },
+        "configHash": { "type": "string" },
+        "reportHash": { "type": "string" },
+        "metricVersions": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+    "inputSummary": { "type": "object" },
+    "statisticalAudit": { "type": "object" },
+    "multipleTestingAudit": { "type": "object" },
+    "robustnessAudit": { "type": "object" },
+    "costCapacityAudit": { "type": "object" },
+    "factorAttribution": { "type": "object" },
+    "dataIntegrity": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "status", "message"],
+        "properties": {
+          "id": { "type": "string" },
+          "severity": { "enum": ["info", "warning", "critical"] },
+          "status": { "enum": ["pass", "fail", "unknown"] },
+          "message": { "type": "string" }
+        }
+      }
+    },
+    "incubation": { "type": "object" },
+    "score": {
+      "type": "object",
+      "required": ["total", "components", "decision"],
+      "properties": {
+        "total": { "type": "number", "minimum": 0, "maximum": 100 },
+        "components": { "type": "object" },
+        "decision": { "enum": ["reject", "research_more", "incubate", "small_capital_pilot", "candidate_for_allocation"] },
+        "overrides": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "warnings": { "type": "array", "items": { "type": "string" } }
+  }
+}
