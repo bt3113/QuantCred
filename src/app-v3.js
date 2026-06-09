@@ -1,7 +1,7 @@
 import { auditDataset, detectSchema, parseRecords, generateMarkdownReport, formatPercent, formatNumber } from "./math/audit.js";
 
 const KENNETH_FRENCH_URL = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html";
-const APP_VERSION = "0.3.0";
+const APP_VERSION = "0.4.0";
 const $ = (selector) => document.querySelector(selector);
 
 const els = {
@@ -56,7 +56,10 @@ async function parseCsvText(text, label = "uploaded CSV", rawHash = null) {
             dsr: "bailey-lopez-de-prado-2014",
             pbo: "bailey-borwein-lopez-de-prado-zhu-2016",
             serialCorrelation: "acf-effective-sample-size-v1",
-            duplicateStrategyAudit: "pairwise-correlation-cluster-v1"
+            duplicateStrategyAudit: "pairwise-correlation-cluster-v1",
+            schemaRouter: "column-role-v1",
+            signalPanel: "pit-leakage-ic-v1",
+            executionAudit: "tca-v1"
           }
         }
       });
@@ -144,7 +147,7 @@ function renderVerdict(report) {
   els.verdictReason.textContent = report.verdict.reason;
   const dot = els.verdictCard.querySelector(".status-dot");
   dot.style.background = status === "Credible" ? "var(--green)"
-    : status === "Likely overfit" || status === "Audit blocked" ? "var(--red)"
+    : status === "Likely overfit" || status === "Audit blocked" || status === "Reject" ? "var(--red)"
     : status === "Research more" || status === "Insufficient data" ? "var(--amber)"
     : "var(--sand)";
 }
@@ -165,6 +168,26 @@ function renderMetrics(report) {
       ${metricCard("Rows inspected", "No audit", report.summary.inputRows ?? 0, "input rows", "No statistical diagnostics were run.")}
       ${metricCard("Sharpe evidence", "Not run", "N/A", "blocked", "Schema must pass before PSR/DSR.")}
       ${metricCard("Overfit check", "Not run", "N/A", "blocked", "PBO requires raw date-indexed returns.")}
+    `;
+    return;
+  }
+
+  if (report.executionAudit) {
+    els.metricGrid.innerHTML = `
+      ${metricCard("Execution audit", report.executionAudit.bindingRule || "Computed", formatNumber(report.executionAudit.weightedNetAlpha5dBps, 2), "net alpha 5d bps", `${report.executionAudit.tradeCount} trades`)}
+      ${metricCard("Shortfall", "TCA", formatNumber(report.executionAudit.weightedImplementationShortfallBps, 2), "bps", `P95 ${formatNumber(report.executionAudit.p95ShortfallBps, 2)} bps`)}
+      ${metricCard("Participation", "Capacity", formatPercent(report.executionAudit.p95ParticipationRate), "p95 participation", `Total notional ${formatNumber(report.executionAudit.totalNotional, 0)}`)}
+      ${metricCard("Sharpe evidence", "Not run", "N/A", "execution blotter", "Trade rows are not return streams.")}
+    `;
+    return;
+  }
+
+  if (report.signalPanelAudit) {
+    els.metricGrid.innerHTML = `
+      ${metricCard("PIT leakage", report.signalPanelAudit.bindingRule || "Checked", formatPercent(report.signalPanelAudit.leakage.leakageRate), "leakage rate", `${report.signalPanelAudit.leakage.leakedRows} leaked rows`)}
+      ${metricCard("Best IC", "Signal", report.signalPanelAudit.bestIc ? formatNumber(report.signalPanelAudit.bestIc.meanIc, 4) : "N/A", "mean IC", report.signalPanelAudit.bestIc ? report.signalPanelAudit.bestIc.signal : "not available")}
+      ${metricCard("Panel keys", "Cross-section", report.signalPanelAudit.duplicateKeyCount, "duplicate keys", "Duplicate dates are expected; asof_date+symbol is checked.")}
+      ${metricCard("Sharpe evidence", "Not run", "N/A", "signal labels", "Future returns are labels, not strategies.")}
     `;
     return;
   }
@@ -210,6 +233,18 @@ function renderReportBody(report) {
         <tr><td>Prepared input hash</td><td>${escapeHtml(shortHash(report.provenance?.inputHashes?.preparedInput))}</td><td>SHA-256 after preprocessing.</td></tr>
       </tbody></table>
       <p class="muted">No Sharpe, PSR, DSR, PBO, or capital-readiness calculations were run because the file did not pass schema gating.</p>`;
+    return;
+  }
+
+  if (report.executionAudit) {
+    const a = report.executionAudit;
+    els.reportBody.innerHTML = `<div class="report-grid"><div class="report-mini"><small>Schema</small><strong>execution_blotter</strong></div><div class="report-mini"><small>Trades</small><strong>${a.tradeCount}</strong></div><div class="report-mini"><small>Net alpha 5d</small><strong>${formatNumber(a.weightedNetAlpha5dBps, 2)} bps</strong></div></div><table class="report-table"><tbody><tr><td>Expected alpha</td><td>${formatNumber(a.weightedExpectedAlphaBps, 4)} bps</td><td>Notional-weighted</td></tr><tr><td>Realized alpha 5d</td><td>${formatNumber(a.weightedRealizedAlpha5dBps, 4)} bps</td><td>Notional-weighted</td></tr><tr><td>Implementation shortfall</td><td>${formatNumber(a.weightedImplementationShortfallBps, 4)} bps</td><td>Execution drag</td></tr><tr><td>Borrow drag 5d</td><td>${formatNumber(a.weightedBorrowDrag5dBps, 4)} bps</td><td>Estimated from borrow_bps_annual</td></tr><tr><td>P95 participation</td><td>${formatPercent(a.p95ParticipationRate)}</td><td>Capacity stress</td></tr><tr><td>Binding rule</td><td>${a.bindingRule || "N/A"}</td><td>Verdict cap</td></tr></tbody></table><p class="muted">${escapeHtml(report.verdict.reason)}</p>`;
+    return;
+  }
+
+  if (report.signalPanelAudit) {
+    const a = report.signalPanelAudit;
+    els.reportBody.innerHTML = `<div class="report-grid"><div class="report-mini"><small>Schema</small><strong>point_in_time_signal_panel</strong></div><div class="report-mini"><small>Rows</small><strong>${a.rowCount}</strong></div><div class="report-mini"><small>Leakage rate</small><strong>${formatPercent(a.leakage.leakageRate)}</strong></div></div><table class="report-table"><tbody><tr><td>Signal columns</td><td>${escapeHtml(a.signalColumns.join(", "))}</td><td>Candidate signals</td></tr><tr><td>Label columns</td><td>${escapeHtml(a.labelColumns.join(", "))}</td><td>Forward returns; never selected as strategies</td></tr><tr><td>Leaked rows</td><td>${a.leakage.leakedRows}</td><td>Availability after as-of date or explicit flag</td></tr><tr><td>Duplicate key count</td><td>${a.duplicateKeyCount}</td><td>asof_date + symbol key</td></tr><tr><td>Best IC pair</td><td>${a.bestIc ? `${escapeHtml(a.bestIc.signal)} vs ${escapeHtml(a.bestIc.label)}` : "N/A"}</td><td>Cross-sectional Spearman IC</td></tr><tr><td>Binding rule</td><td>${a.bindingRule || "N/A"}</td><td>Verdict cap</td></tr></tbody></table><p class="muted">${escapeHtml(report.verdict.reason)}</p>`;
     return;
   }
 
