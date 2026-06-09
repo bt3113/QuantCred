@@ -1,32 +1,42 @@
 # CSV Format
 
-QuantCred supports two CSV formats.
+QuantCred supports multiple auditable input formats. This document specifies headers only. It intentionally does not include synthetic performance rows.
 
-## Single-strategy mode
-
-Use this when you have one return stream.
+## Single return stream
 
 ```csv
 date,return
-2024-01-02,0.004
-2024-01-03,-0.002
-2024-01-04,0.001
 ```
 
 Returns should be decimal returns. Use `0.01` for 1%.
 
-## Strategy-matrix mode
-
-Use this when you tested multiple strategy variants.
+## Strategy matrix
 
 ```csv
-date,momentum_v1,mean_reversion_v2,breakout_v3
-2024-01-02,0.002,-0.001,0.004
-2024-01-03,-0.003,0.001,0.002
-2024-01-04,0.005,0.002,-0.001
+date,strategy_001,strategy_002,strategy_003
 ```
 
-Strategy-matrix mode enables the strongest audit because DSR and PBO require information about the strategy-selection process.
+Strategy-matrix mode enables DSR and PBO because it exposes the strategy-selection universe.
+
+## Trades/orders
+
+```csv
+date,symbol,side,quantity,price,fees,borrow_cost,spread_bps,adv,notional
+```
+
+## Positions/holdings
+
+```csv
+date,symbol,weight,notional,sector,country,market_cap,adv
+```
+
+## Factor returns
+
+```csv
+date,mkt,size,value,momentum,quality,low_vol
+```
+
+The Kenneth R. French factor file is also supported in its unmodified CSV/ZIP form.
 
 ## Validation rules
 
@@ -37,4 +47,6 @@ QuantCred warns about:
 - non-numeric return cells
 - very small samples
 - return values that look like percentages instead of decimals
+- impossible simple returns
 - zero or near-zero volatility
+- near-identical strategy columns
