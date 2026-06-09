@@ -94,7 +94,7 @@ function prepareCsvText(text, label) {
     return {
       text: french,
       label,
-      notes: ["Detected Kenneth French factor format. Header text was removed and percent returns were converted to decimal returns."]
+      notes: ["Detected Kenneth French factor format. Header text was removed, percent returns were converted to decimal returns, and RF was excluded from strategy selection."]
     };
   }
 
@@ -111,7 +111,7 @@ function prepareFrenchFactorCsv(text) {
   const headerIndex = lines.findIndex((line) => /^,?Mkt-RF,SMB,HML,RF$/i.test(line.replace(/\s+/g, "")));
   if (headerIndex === -1) return null;
 
-  const output = ["date,mkt_rf,smb,hml,rf"];
+  const output = ["date,mkt_rf,smb,hml"];
   for (let i = headerIndex + 1; i < lines.length; i += 1) {
     const line = lines[i];
     if (!/^\d{8},/.test(line)) break;
@@ -121,7 +121,7 @@ function prepareFrenchFactorCsv(text) {
     const y = dateRaw.slice(0, 4);
     const m = dateRaw.slice(4, 6);
     const d = dateRaw.slice(6, 8);
-    const values = parts.slice(1, 5).map((value) => {
+    const values = parts.slice(1, 4).map((value) => {
       const number = Number(value);
       return Number.isFinite(number) ? (number / 100).toString() : "";
     });
